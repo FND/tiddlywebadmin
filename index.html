@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>TiddlyWeb Admin</title>
+	<link rel="stylesheet" href="styles/main.css">
+	<!--[if lte IE 8]>
+	<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+</head>
+
+<body>
+	<form id="settings" action="#">
+		<fieldset>
+			<legend>Settings</legend>
+			<dl>
+				<dt>Host:</dt>
+				<dd><input type="text" name="host" /></dd>
+			</dl>
+		</fieldset>
+	</form>
+
+	<form id="creator" action="#">
+		<fieldset>
+			<legend>Create Container</legend>
+			<dl>
+				<dt>Name:</dt>
+				<dd><input type="text" name="name" /></dd>
+				<dt>Description:</dt>
+				<dd><textarea name="description"></textarea></dd>
+			</dl>
+			<input type="submit" name="bag" value="Create Bag" />
+			<input type="submit" name="recipe" value="Create Recipe" />
+		</fieldset>
+	</form>
+
+	<div id="bags" class="placeholder"></div>
+	<div id="recipes" class="placeholder"></div>
+
+	<script type="text/html" id="template_collection">
+		<section id="<%= id %>" class="collection">
+			<h2> <%= title %> </h2>
+			<ul>
+				<% for(var i = 0; i < items.length; i++) { %>
+				<li>
+					<a href="javascript:;"> <%= items[i] %> </a>
+				</li>
+				<% } %>
+			</ul>
+		</section>
+	</script>
+
+	<script src="scripts/jquery.min.js"></script>
+	<script src="scripts/jquery-json.min.js"></script>
+	<script src="scripts/chrjs.js"></script>
+	<script src="scripts/sudo.js"></script>
+	<script src="scripts/util.js"></script>
+	<script src="scripts/main.js"></script>
+</body>
+
+</html>
