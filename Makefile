@@ -1,8 +1,13 @@
 .PHONY: lib purge
 
+jquery_version = 1.4
+jqueryui_version = 1.8.1
+
 lib:
 	curl -o "scripts/jquery.min.js" \
-		"http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"
+		"http://ajax.googleapis.com/ajax/libs/jquery/$(jquery_version)/jquery.min.js"
+	curl -o "scripts/jquery-ui.min.js" \
+		"http://ajax.googleapis.com/ajax/libs/jqueryui/$(jqueryui_version)/jquery-ui.min.js"
 	curl -o "scripts/jquery-json.min.js" \
 		"http://jquery-json.googlecode.com/files/jquery.json-2.2.min.js"
 	curl -o "scripts/chrjs.js" \
@@ -13,4 +18,4 @@ lib:
 		"http://github.com/FND/jquery/raw/master/util.js"
 
 purge:
-	cat .gitignore | while read -r entry; do rm -r "$$entry"; done || true
+	cat .gitignore | while read -r entry; do rm -r $$entry; done || true
