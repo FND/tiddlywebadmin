@@ -23,26 +23,13 @@
 		</fieldset>
 	</form>
 
-	<form id="creator" action="#">
-		<fieldset>
-			<legend>Create Container</legend>
-			<dl>
-				<dt>Name:</dt>
-				<dd><input type="text" name="name" /></dd>
-				<dt>Description:</dt>
-				<dd><textarea name="description"></textarea></dd>
-			</dl>
-			<input type="submit" name="bag" value="Create Bag" />
-			<input type="submit" name="recipe" value="Create Recipe" />
-		</fieldset>
-	</form>
-
 	<div id="bags" class="placeholder"></div>
 	<div id="recipes" class="placeholder"></div>
 
 	<script type="text/html" id="template_collection">
 		<section id="<%= id %>" class="collection">
 			<h2> <%= title %> </h2>
+			<a class="button" href="javascript:;"> <%= btnLabel %> </a>
 			<ul>
 				<% for(var i = 0; i < items.length; i++) { %>
 				<li>
@@ -51,6 +38,18 @@
 				<% } %>
 			</ul>
 		</section>
+	</script>
+
+	<script type="text/html" id="template_containerForm">
+		<form action="#">
+			<dl>
+				<dt>Name:</dt>
+				<dd><input type="text" name="name" /></dd>
+				<dt>Description:</dt>
+				<dd><textarea name="description"></textarea></dd>
+			</dl>
+			<input type="submit" value="<%= btnLabel %>" />
+		</form>
 	</script>
 
 	<script src="scripts/jquery.min.js"></script>

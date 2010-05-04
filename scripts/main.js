@@ -11,22 +11,38 @@ var ns = tiddlyweb.admin = {
 	},
 	renderCollection: function(type, items, container) { // XXX: adapted from TiddlyRecon's listCollection (along with HTML template)
 		// TODO: sorting (cf. TiddlyRecon)
-		return $("#template_collection").template({
+		var ctx = {
 			id: type,
 			title: tiddlyweb._capitalize(type), // TODO: optional title argument
+			btnLabel: "New", // TODO: i18n
 			items: items
-		});
+		};
+		return $("#template_collection").template(ctx).data({ type: type }).
+			find(".button:first").click(this.containerDialog).end();
 	},
-	createContainer: function(ev) {
-		// TODO: should not create entity, but only present properties dialog
-		//       at which point this specialized form is obsolete
-		var btn = $(this);
-		var type = btn.attr("name");
-		var form = btn.closest("form");
-		var name = form.find("input[name=name]").val();
-		var desc = form.find("input[name=description]").val();
+	containerDialog: function(ev) { // TODO: when spawned from New button, warn if entity already exists
+		var type = $(this).closest("section").data("type");
+		type = type.substr(0, type.length - 1);
+		$("#template_containerForm").template({ btnLabel: "Save" }). // TODO: i18n
+			data({ type: type }).
+			find("[type=submit]").click(ns.updateContainer).end().
+			dialog({
+				title: "Add " + tiddlyweb._capitalize(type), // TODO: i18n
+				closeOnEscape: false,
+				close: function(ev, ui) {
+					$(this).closest(".ui-dialog").remove();
+				}
+			});
+		return false;
+	},
+	updateContainer: function(ev) {
+		var form = $(this).closest("form");
+		var name = form.find("[name=name]").val();
+		var desc = form.find("[name=description]").val();
+		var type = form.data("type");
 		var cls = tiddlyweb._capitalize(type);
 		var entity = new tiddlyweb[cls](name, ns.getHost());
+		entity.desc = desc;
 		entity.put(function(data, status, xhr) {
 			ns.refreshCollection(type + "s");
 		}, ns.notify);
@@ -67,8 +83,6 @@ var refreshAll = function(ev) {
 $("#settings").
 	find("input[name=host]").val("http://0.0.0.0:8080").end(). // XXX: DEBUG
 	find("input[type=submit]").val("Refresh").click(refreshAll); // TODO: i18n
-
-$("#creator").find("input[type=submit]").click(ns.createContainer);
 
 refreshAll();
 
