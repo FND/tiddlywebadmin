@@ -1,0 +1,5 @@
+TiddlyWebAdmin
+TiddlyWeb bag and recipe administration
+http://github.com/FND/tiddlywebadmin
+
+`make lib` downloads dependencies
