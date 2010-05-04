@@ -18,12 +18,13 @@ var ns = tiddlyweb.admin = {
 			items: items
 		};
 		return $("#template_collection").template(ctx).data({ type: type }).
-			find(".button:first").click(this.containerDialog).end();
+			find(".button, li a").click(this.containerDialog).end();
 	},
 	containerDialog: function(ev) { // TODO: when spawned from New button, warn if entity already exists
-		var type = $(this).closest("section").data("type");
+		var btn = $(this);
+		var type = btn.closest("section").data("type");
 		type = type.substr(0, type.length - 1);
-		$("#template_containerForm").template({ btnLabel: "Save" }). // TODO: i18n
+		var form = $("#template_containerForm").template({ btnLabel: "Save" }). // TODO: i18n
 			data({ type: type }).
 			find("[type=submit]").click(ns.updateContainer).end().
 			dialog({
@@ -33,9 +34,21 @@ var ns = tiddlyweb.admin = {
 					$(this).closest(".ui-dialog").empty().remove(); // emptying required due to jQuery UI magic
 				}
 			});
+		if(btn.parent()[0].tagName.toLowerCase() == "li") { // XXX: hacky? -- XXX: special-casing
+			var name = $.trim(btn.text());
+			form.find("[name=name]").val(name).addClass("readOnly");
+			var fields = form.find("input, textarea").attr("disabled", true);
+			var cls = tiddlyweb._capitalize(type);
+			var entity = new tiddlyweb[cls](name, ns.getHost());
+			entity.get(function(resource, status, xhr) {
+				form.data("resource", resource); // XXX: temporary workaround (see below)
+				fields.filter("[name=description]").val(resource.desc);
+				fields.not(".readOnly").attr("disabled", false);
+			}, ns.notify);
+		}
 		return false;
 	},
-	updateContainer: function(ev) {
+	updateContainer: function(ev) { // TODO: rename (also does original PUTs...)
 		var form = $(this).closest("form");
 		var name = form.find("[name=name]").val();
 		var desc = form.find("[name=description]").val();
@@ -43,8 +56,12 @@ var ns = tiddlyweb.admin = {
 		var cls = tiddlyweb._capitalize(type);
 		var entity = new tiddlyweb[cls](name, ns.getHost());
 		entity.desc = desc;
+		var resource = form.data("resource");
+		if(resource) { // XXX: special-casing
+			entity = restore(entity, resource); // XXX: temporary workaround (otherwise policy & recipe will be reset)
+		}
 		entity.put(function(resource, status, xhr) {
-			ns.refreshCollection(type + "s");
+			ns.refreshCollection(type + "s"); // XXX: redundant if entity not new
 		}, ns.notify);
 		return false;
 	},
@@ -61,6 +78,17 @@ var ns = tiddlyweb.admin = {
 			alert(msg);
 		}
 	}
+};
+
+var restore = function(entity, resource) { // XXX: temporary workaround (see above)
+	for(var i = 0; i < resource.data.length; i++) {
+		var attr = resource.data[i];
+		var val = entity[attr];
+		if(val && val.length !== undefined ? val.length === 0 : !val) { // XXX: hacky and imprecise
+			entity[attr] = resource[attr];
+		}
+	}
+	return entity;
 };
 
 if(window.location.protocol == "file:") {
