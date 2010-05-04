@@ -49,7 +49,7 @@ var ns = tiddlyweb.admin = {
 		return false;
 	},
 	getHost: function() {
-		return $("#settings").find("input[name=host]").val();
+		return $("#settings").find("[name=host]").val();
 	},
 	notify: function(msg) { // TODO: proper implementation -- XXX: does not belong into this namespace!?
 		if(window.console && console.log) {
@@ -64,12 +64,12 @@ var ns = tiddlyweb.admin = {
 };
 
 if(window.location.protocol == "file:") {
-	$._ajax = $.ajax;
+	var ajax = $.ajax;
 	$.ajax = function() { // XXX: this should be simpler
 		var self = this;
 		var args = arguments;
 		sudo(function() {
-			$._ajax.apply(self, args);
+			ajax.apply(self, args);
 		});
 	};
 }
@@ -81,8 +81,8 @@ var refreshAll = function(ev) {
 };
 
 $("#settings").
-	find("input[name=host]").val("http://0.0.0.0:8080").end(). // XXX: DEBUG
-	find("input[type=submit]").val("Refresh").click(refreshAll); // TODO: i18n
+	find("[name=host]").val("http://0.0.0.0:8080").end(). // XXX: DEBUG
+	find("[type=submit]").val("Refresh").click(refreshAll); // TODO: i18n
 
 refreshAll();
 

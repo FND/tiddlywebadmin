@@ -11,11 +11,19 @@ pre {
 }
 
 ul, ol {
-	margin-left: 1.5em;
+	margin-left: 1em;
 	list-style-position: outside;
+}
+
+fieldset {
+	padding: 5px;
 }
 
 .collection {
 	float: left;
 	margin-right: 1em;
+}
+
+#settings {
+	float: right;
 }
