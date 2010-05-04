@@ -58,13 +58,18 @@ if(window.location.protocol == "file:") {
 	};
 }
 
-// XXX: DEBUG?
-$("#settings").find("input[name=host]").val("http://0.0.0.0:8080");
+var refreshAll = function(ev) {
+	ns.refreshCollection("recipes");
+	ns.refreshCollection("bags");
+	return false;
+};
+
+$("#settings").
+	find("input[name=host]").val("http://0.0.0.0:8080").end(). // XXX: DEBUG
+	find("input[type=submit]").val("Refresh").click(refreshAll); // TODO: i18n
 
 $("#creator").find("input[type=submit]").click(ns.createContainer);
 
-// populate collections -- TODO: ensure recipes are rendered first
-ns.refreshCollection("recipes");
-ns.refreshCollection("bags");
+refreshAll();
 
 })(jQuery);
