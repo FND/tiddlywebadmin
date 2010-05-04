@@ -1,6 +1,6 @@
 /* dialog */
 
-.ui-dialog-title {
+.ui-dialog-titlebar {
 	cursor: pointer; /* draggable handle */
 }
 

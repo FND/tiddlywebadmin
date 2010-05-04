@@ -5,8 +5,8 @@ var ns = tiddlyweb.admin = {
 
 	refreshCollection: function(type) {
 		var collection = new tiddlyweb.Collection(type, this.getHost());
-		collection.get(function(data, status, xhr) {
-			ns.renderCollection(type, data).replaceAll("#" + type);
+		collection.get(function(resource, status, xhr) {
+			ns.renderCollection(type, resource).replaceAll("#" + type);
 		}, this.notify);
 	},
 	renderCollection: function(type, items, container) { // XXX: adapted from TiddlyRecon's listCollection (along with HTML template)
@@ -30,7 +30,7 @@ var ns = tiddlyweb.admin = {
 				title: "Add " + tiddlyweb._capitalize(type), // TODO: i18n
 				closeOnEscape: false,
 				close: function(ev, ui) {
-					$(this).closest(".ui-dialog").remove();
+					$(this).closest(".ui-dialog").empty().remove(); // emptying required due to jQuery UI magic
 				}
 			});
 		return false;
@@ -43,7 +43,7 @@ var ns = tiddlyweb.admin = {
 		var cls = tiddlyweb._capitalize(type);
 		var entity = new tiddlyweb[cls](name, ns.getHost());
 		entity.desc = desc;
-		entity.put(function(data, status, xhr) {
+		entity.put(function(resource, status, xhr) {
 			ns.refreshCollection(type + "s");
 		}, ns.notify);
 		return false;
@@ -65,7 +65,7 @@ var ns = tiddlyweb.admin = {
 
 if(window.location.protocol == "file:") {
 	var ajax = $.ajax;
-	$.ajax = function() { // XXX: this should be simpler
+	$.ajax = function() { // XXX: this should be simpler -- XXX: does not return XHR object
 		var self = this;
 		var args = arguments;
 		sudo(function() {
