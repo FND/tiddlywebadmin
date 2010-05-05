@@ -26,14 +26,17 @@ var ns = tiddlyweb.admin = {
 		type = type.substr(0, type.length - 1);
 		var form = $("#template_containerForm").template({ btnLabel: "Save" }). // TODO: i18n
 			data({ type: type }).
-			find("[type=submit]").click(ns.updateContainer).end().
-			dialog({
-				title: "Add " + tiddlyweb._capitalize(type), // TODO: i18n
-				closeOnEscape: false,
-				close: function(ev, ui) {
-					$(this).closest(".ui-dialog").empty().remove(); // emptying required due to jQuery UI magic
-				}
-			});
+			find("[type=submit]").click(ns.updateContainer).end();
+		if(type != "recipe") { // XXX: special-casing
+			form.find("[name=recipe]").closest("dd").hide().prev().hide();
+		}
+		form.dialog({
+			title: "Add " + tiddlyweb._capitalize(type), // TODO: i18n
+			closeOnEscape: false,
+			close: function(ev, ui) {
+				$(this).closest(".ui-dialog").empty().remove(); // emptying required due to jQuery UI magic
+			}
+		});
 		if(btn.parent()[0].tagName.toLowerCase() == "li") { // XXX: hacky? -- XXX: special-casing
 			var name = $.trim(btn.text());
 			form.find("[name=name]").val(name).addClass("readOnly");
@@ -43,6 +46,10 @@ var ns = tiddlyweb.admin = {
 			entity.get(function(resource, status, xhr) {
 				form.data("resource", resource); // XXX: temporary workaround (see below)
 				fields.filter("[name=description]").val(resource.desc);
+				if(type == "recipe") { // XXX: special-casing
+					var recipe = $.toJSON(resource.recipe); // TODO: "friendly" serialization (plus encapsulation)
+					fields.filter("[name=recipe]").val(recipe);
+				}
 				fields.not(".readOnly").attr("disabled", false);
 			}, ns.notify);
 		}
@@ -56,9 +63,13 @@ var ns = tiddlyweb.admin = {
 		var cls = tiddlyweb._capitalize(type);
 		var entity = new tiddlyweb[cls](name, ns.getHost());
 		entity.desc = desc;
+		if(type == "recipe") { // XXX: special-casing
+			var recipe = form.find("[name=recipe]").val();
+			entity.recipe = $.parseJSON(recipe);
+		}
 		var resource = form.data("resource");
 		if(resource) { // XXX: special-casing
-			entity = restore(entity, resource); // XXX: temporary workaround (otherwise policy & recipe will be reset)
+			entity = restore(entity, resource); // XXX: temporary workaround (otherwise policy will be reset)
 		}
 		entity.put(function(resource, status, xhr) {
 			ns.refreshCollection(type + "s"); // XXX: redundant if entity not new
