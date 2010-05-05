@@ -47,7 +47,7 @@ var ns = tiddlyweb.admin = {
 				form.data("resource", resource); // XXX: temporary workaround (see below)
 				fields.filter("[name=description]").val(resource.desc);
 				if(type == "recipe") { // XXX: special-casing
-					var recipe = $.toJSON(resource.recipe); // TODO: "friendly" serialization (plus encapsulation)
+					var recipe = ns.serializeRecipe(resource.recipe);
 					fields.filter("[name=recipe]").val(recipe);
 				}
 				fields.not(".readOnly").attr("disabled", false);
@@ -65,7 +65,10 @@ var ns = tiddlyweb.admin = {
 		entity.desc = desc;
 		if(type == "recipe") { // XXX: special-casing
 			var recipe = form.find("[name=recipe]").val();
-			entity.recipe = $.parseJSON(recipe);
+			entity.recipe = ns.deserializeRecipe(recipe);
+			if(entity.recipe === false) {
+				return false;
+			}
 		}
 		var resource = form.data("resource");
 		if(resource) { // XXX: special-casing
@@ -75,6 +78,17 @@ var ns = tiddlyweb.admin = {
 			ns.refreshCollection(type + "s"); // XXX: redundant if entity not new
 		}, ns.notify);
 		return false;
+	},
+	serializeRecipe: function(recipe) {
+		var lines = recipe.map(function(item, i) {
+			return item[0] + "?" + item[1];
+		});
+		return lines.join("\n");
+	},
+	deserializeRecipe: function(str) { // TODO: ensure validity
+		return str.split("\n").map(function(item, i) {
+			return item.split("?"); // TODO: encode special characters?
+		});
 	},
 	getHost: function() {
 		return $("#settings").find("[name=host]").val();
