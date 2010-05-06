@@ -28,7 +28,7 @@ var ns = tiddlyweb.admin = {
 			data({ type: type }).
 			find("[type=submit]").click(ns.updateContainer).end();
 		if(type != "recipe") { // XXX: special-casing
-			form.find("[name=recipe]").closest("dd").hide().prev().hide();
+			form.find("[name=recipe]").closest("dd").prev().remove().end().remove();
 		}
 		form.dialog({
 			title: "Add " + tiddlyweb._capitalize(type), // TODO: i18n
@@ -39,9 +39,10 @@ var ns = tiddlyweb.admin = {
 		});
 		if(btn.parent()[0].tagName.toLowerCase() == "li") { // XXX: hacky? -- XXX: special-casing
 			var name = $.trim(btn.text());
+			var cls = tiddlyweb._capitalize(type);
+			form.dialog("option", "title", cls + ": " + name);
 			form.find("[name=name]").val(name).addClass("readOnly");
 			var fields = form.find("input, textarea").attr("disabled", true);
-			var cls = tiddlyweb._capitalize(type);
 			var entity = new tiddlyweb[cls](name, ns.getHost());
 			entity.get(function(resource, status, xhr) {
 				form.data("resource", resource); // XXX: temporary workaround (see below)
