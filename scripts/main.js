@@ -25,8 +25,7 @@ var ns = tiddlyweb.admin = {
 		var type = btn.closest("section").data("type");
 		type = type.substr(0, type.length - 1);
 		var form = $("#template_containerForm").template({ btnLabel: "Save" }). // TODO: i18n
-			data({ type: type }).
-			find("[type=submit]").click(ns.updateContainer).end();
+			data({ type: type }).submit(ns.updateContainer);
 		if(type != "recipe") { // XXX: special-casing
 			form.find("[name=recipe]").closest("dd").prev().remove().end().remove();
 		}
@@ -134,9 +133,8 @@ var refreshAll = function(ev) {
 	return false;
 };
 
-$("#settings").
-	find("[name=host]").val("http://0.0.0.0:8080").end(). // XXX: DEBUG
-	find("[type=submit]").val("Refresh").click(refreshAll); // TODO: i18n
+$("#settings").submit(refreshAll). // TODO: i18n
+	find("[name=host]").val("http://0.0.0.0:8080"); // XXX: DEBUG
 
 refreshAll();
 
