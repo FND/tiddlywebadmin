@@ -24,6 +24,10 @@ fieldset {
 	margin-right: 1em;
 }
 
+.ui-dialog textarea {
+	width: 90%;
+}
+
 #settings {
 	float: right;
 }
