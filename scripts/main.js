@@ -10,12 +10,15 @@ var ns = tiddlyweb.admin = {
 		}, this.notify);
 	},
 	renderCollection: function(type, items, container) { // XXX: adapted from TiddlyRecon's listCollection (along with HTML template)
-		// TODO: sorting (cf. TiddlyRecon)
 		var ctx = {
 			id: type,
 			title: tiddlyweb._capitalize(type), // TODO: optional title argument
 			btnLabel: "New", // TODO: i18n
-			items: items
+			items: items.sort(function(a, b) {
+				var x = a.toLowerCase();
+				var y = b.toLowerCase();
+				return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+			})
 		};
 		return $("#template_collection").template(ctx).data({ type: type }).
 			find(".button, li a").click(this.containerDialog).end();
