@@ -33,11 +33,7 @@ var ns = tiddlyweb.admin = {
 			form.find("[name=recipe]").closest("dd").prev().remove().end().remove();
 		}
 		form.dialog({
-			title: "Add " + tiddlyweb._capitalize(type), // TODO: i18n
-			closeOnEscape: false,
-			close: function(ev, ui) {
-				$(this).closest(".ui-dialog").empty().remove(); // emptying required due to jQuery UI magic
-			}
+			title: "Add " + tiddlyweb._capitalize(type) // TODO: i18n
 		});
 		if(btn.parent()[0].tagName.toLowerCase() == "li") { // XXX: hacky? -- XXX: special-casing
 			var name = $.trim(btn.text());
@@ -145,6 +141,13 @@ var refreshAll = function(ev) {
 	ns.refreshCollection("bags");
 	return false;
 };
+
+$.extend($.ui.dialog.prototype.options, {
+	closeOnEscape: false,
+	close: function(ev, ui) {
+		$(this).closest(".ui-dialog").empty().remove(); // emptying required due to jQuery UI magic
+	}
+});
 
 $("#settings").submit(refreshAll). // TODO: i18n
 	find("[name=host]").val("http://0.0.0.0:8080"); // XXX: DEBUG

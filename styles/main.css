@@ -26,7 +26,7 @@ fieldset {
 
 .policy dt,
 .policy dd ul {
-	clear: left,
+	clear: left;
 }
 
 .policy dt {

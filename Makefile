@@ -1,7 +1,7 @@
 .PHONY: lib purge
 
 jquery_version = 1.4
-jqueryui_version = 1.8.1
+jqueryui_version = 1.8
 
 lib:
 	curl -o "scripts/jquery.min.js" \
