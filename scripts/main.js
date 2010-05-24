@@ -108,6 +108,30 @@ var ns = tiddlyweb.admin = {
 	}
 };
 
+ns.Policy = function(policy) {
+	this.policy = policy; // TODO: rename?
+};
+$.extend(ns.Policy.prototype, {
+	constraints: { // TODO: descriptions; distinction bag/recipe
+		read: "lorem",
+		write: "ipsum",
+		create: "dolor",
+		"delete": "sit",
+		manage: "amet",
+		accept: "consectetur"
+	},
+	btnLabel: "Save",
+
+	serialize: function() { // XXX: returning a jQuery object is not really a serialization
+		var ctx = {
+			constraints: this.constraints,
+			policy: this.policy,
+			btnLabel: this.btnLabel
+		};
+		return $("#template_policy").template(ctx);
+	}
+});
+
 var restore = function(entity, resource) { // XXX: temporary workaround (see above)
 	for(var i = 0; i < resource.data.length; i++) {
 		var attr = resource.data[i];
