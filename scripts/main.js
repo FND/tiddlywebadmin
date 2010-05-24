@@ -47,7 +47,7 @@ var ns = tiddlyweb.admin = {
 			var fields = form.find("input, textarea").attr("disabled", true);
 			var entity = new tiddlyweb[cls](name, ns.getHost());
 			entity.get(function(resource, status, xhr) {
-				form.data("resource", resource); // XXX: temporary workaround (see below)
+				form.data("policy", resource.policy); // XXX: hacky?
 				fields.filter("[name=description]").val(resource.desc);
 				if(type == "recipe") { // XXX: special-casing
 					var recipe = ns.serializeRecipe(resource.recipe);
@@ -73,10 +73,7 @@ var ns = tiddlyweb.admin = {
 				return false;
 			}
 		}
-		var resource = form.data("resource");
-		if(resource) { // XXX: special-casing
-			entity = restore(entity, resource); // XXX: temporary workaround (otherwise policy will be reset)
-		}
+		entity.policy = form.data("policy") || null; // XXX: hacky?
 		entity.put(function(resource, status, xhr) {
 			ns.refreshCollection(type + "s"); // XXX: redundant if entity not new
 		}, ns.notify);
@@ -131,17 +128,6 @@ $.extend(ns.Policy.prototype, {
 		return $("#template_policy").template(ctx);
 	}
 });
-
-var restore = function(entity, resource) { // XXX: temporary workaround (see above)
-	for(var i = 0; i < resource.data.length; i++) {
-		var attr = resource.data[i];
-		var val = entity[attr];
-		if(val && val.length !== undefined ? val.length === 0 : !val) { // XXX: hacky and imprecise
-			entity[attr] = resource[attr];
-		}
-	}
-	return entity;
-};
 
 if(window.location.protocol == "file:") {
 	var ajax = $.ajax;
