@@ -199,11 +199,11 @@ $.extend(ns.Policy.prototype, {
 		var el = $(this);
 		var self = el.closest("form").data("self");
 		if(confirm(self.delPrompt)) { // TODO: message should contain identifier (to verify click)
-			el.slideUp(function() {
+			el.fadeOut(function() {
 				var list = el.parent();
 				$(this).remove();
 				if(list.children().length == 0) {
-					$("<li><em>empty</em></li>").hide().appendTo(list).slideDown(); // XXX: hacky (duplicates editor method's functionality)
+					$("<li><em>empty</em></li>").hide().appendTo(list).fadeIn(); // XXX: hacky (duplicates editor method's functionality)
 				}
 			});
 		}
