@@ -121,7 +121,7 @@ var ns = tiddlyweb.admin = {
 };
 
 ns.Policy = function(policy) { // TODO: move to separate module
-	this.policy = policy; // TODO: rename?
+	this.policy = policy || {}; // TODO: rename?
 };
 $.extend(ns.Policy.prototype, {
 	constraints: { // TODO: descriptions; distinction bag/recipe
@@ -145,7 +145,7 @@ $.extend(ns.Policy.prototype, {
 			addLabel: this.addLabel
 		};
 		// augment list items
-		$.each(this.policy, function(constraint, items) {
+		$.each(this.policy || {}, function(constraint, items) {
 			if(constraint == "owner") {
 				ctx.policy[constraint] = items;
 			} else if(items.length == 0) {
