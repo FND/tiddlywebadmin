@@ -17,5 +17,8 @@ lib:
 	curl -o "scripts/util.js" \
 		"http://github.com/FND/jquery/raw/master/util.js"
 
+spa: lib
+	./spa.py index.html
+
 purge:
 	cat .gitignore | while read -r entry; do rm -r $$entry; done || true
