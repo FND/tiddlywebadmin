@@ -14,22 +14,31 @@ import sys
 import os
 import re
 
+from base64 import b64encode
+
 
 def main(args):
 	args = [unicode(arg, "utf-8") for arg in args]
 	filename = args[1]
 
-	jspattern = re.compile(r'<script src="(.*?)"></script>')
-	csspattern = re.compile(r'<link rel="stylesheet" href="(.*?)">')
+	patterns = { # TODO: support arbitrary attributes (e.g. img's alt)
+		"js": re.compile(r'<script src="(.*?)"></script>'),
+		"css": re.compile(r'<link rel="stylesheet" href="(.*?)">'),
+		"img": re.compile(r'<img src="(.*?)">')
+	}
 	original = _readfile(filename)
 
-	references = jspattern.findall(original) + csspattern.findall(original)
+	references = []
+	for type in patterns.keys():
+		refs = patterns[type].findall(original)
+		references.extend(refs)
 
 	resources = {}
 	for uri in references:
 		if not uri.startswith("http://") and not uri.startswith("https://"):
 			filepath = os.sep.join(uri.split("/"))
-			resources[uri] = _readfile(filepath)
+			binary = not (uri.endswith(".js") or uri.endswith(".css")) # XXX: special-casing
+			resources[uri] = _readfile(filepath, binary)
 
 	spa = []
 	for line in original.splitlines():
@@ -39,6 +48,10 @@ def main(args):
 					template = "<script>\n%s\n</script>"
 				elif uri.endswith(".css"):
 					template = "<style>\n%s\n</style>"
+				else: # image
+					ext = uri.rsplit(".", 1)[1]
+					template = '<img src="data:image/%s;base64,%s">' % (ext, "%s")
+					code = b64encode(code)
 				line = template % code
 		spa.append(line)
 
@@ -52,8 +65,9 @@ def main(args):
 	return True
 
 
-def _readfile(filepath):
-	f = open(filepath, "r")
+def _readfile(filepath, binary=False):
+	mode = "rb" if binary else "r"
+	f = open(filepath, mode)
 	content = f.read()
 	f.close()
 	return content
