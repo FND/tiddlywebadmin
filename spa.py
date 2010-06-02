@@ -3,7 +3,7 @@
 """
 single-page app compiler
 
-uses references to local JavaScript and CSS files and bakes their code into an
+uses references to local JavaScript, CSS and image files and bakes them into an
 HTML5 document
 
 Usage:
@@ -42,7 +42,7 @@ def main(args):
 
 	spa = []
 	for line in original.splitlines():
-		for uri, code in resources.items():
+		for uri, src in resources.items():
 			if uri in line:
 				if uri.endswith(".js"):
 					template = "<script>\n%s\n</script>"
@@ -51,8 +51,8 @@ def main(args):
 				else: # image
 					ext = uri.rsplit(".", 1)[1]
 					template = '<img src="data:image/%s;base64,%s">' % (ext, "%s")
-					code = b64encode(code)
-				line = template % code
+					src = b64encode(src)
+				line = template % src
 		spa.append(line)
 
 	filename = filename.replace(".html", ".spa.html")
