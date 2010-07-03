@@ -24,6 +24,22 @@ fieldset {
 	margin-right: 1em;
 }
 
+.policy dt,
+.policy dd ul {
+	clear: left;
+}
+
+.policy dt {
+	float: left;
+	margin-right: 0.5em;
+	font-weight: bold;
+}
+
+.policy dd p {
+	font-size: small;
+	color: #888;
+}
+
 .ui-dialog textarea {
 	width: 90%;
 }

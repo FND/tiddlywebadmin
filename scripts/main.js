@@ -28,16 +28,13 @@ var ns = tiddlyweb.admin = {
 		var type = btn.closest("section").data("type");
 		type = type.substr(0, type.length - 1);
 		var form = $("#template_containerForm").template({ btnLabel: "Save" }). // TODO: i18n
-			data({ type: type }).submit(ns.updateContainer);
+			data({ type: type }).submit(ns.updateContainer).
+			find("[name=policy]").focus(ns.policyDialog).end(); // XXX: focus event limits interaction (due to read-only)
 		if(type != "recipe") { // XXX: special-casing
 			form.find("[name=recipe]").closest("dd").prev().remove().end().remove();
 		}
 		form.dialog({
-			title: "Add " + tiddlyweb._capitalize(type), // TODO: i18n
-			closeOnEscape: false,
-			close: function(ev, ui) {
-				$(this).closest(".ui-dialog").empty().remove(); // emptying required due to jQuery UI magic
-			}
+			title: "Add " + tiddlyweb._capitalize(type) // TODO: i18n
 		});
 		if(btn.parent()[0].tagName.toLowerCase() == "li") { // XXX: hacky? -- XXX: special-casing
 			var name = $.trim(btn.text());
@@ -47,7 +44,7 @@ var ns = tiddlyweb.admin = {
 			var fields = form.find("input, textarea").attr("disabled", true);
 			var entity = new tiddlyweb[cls](name, ns.getHost());
 			entity.get(function(resource, status, xhr) {
-				form.data("resource", resource); // XXX: temporary workaround (see below)
+				fields.filter("[name=policy]").val($.toJSON(resource.policy));
 				fields.filter("[name=description]").val(resource.desc);
 				if(type == "recipe") { // XXX: special-casing
 					var recipe = ns.serializeRecipe(resource.recipe);
@@ -58,9 +55,27 @@ var ns = tiddlyweb.admin = {
 		}
 		return false;
 	},
+	policyDialog: function(ev) {
+		var src = $(this).attr("disabled", true);
+		var form = src.closest("form");
+		var policy = src.val();
+		var type = form.data("type");
+		var name = form.find("[name=name]").val();
+		policy = new ns.Policy($.parseJSON(policy));
+		var pos = src.offset(); // XXX: mouse position would be better
+		policy.editor().dialog({
+			title: "Policy for " + tiddlyweb._capitalize(type) + " " + name, // TODO: i18n
+			position: [pos.left, pos.top],
+			close: function(ev, ui) {
+				src.val($.toJSON(policy.policy)).attr("disabled", false);
+				$.ui.dialog.prototype.options.close.apply(this, arguments);
+			}
+		});
+	},
 	updateContainer: function(ev) { // TODO: rename (also does original PUTs...)
 		var form = $(this).closest("form");
 		var name = form.find("[name=name]").val();
+		var policy = form.find("[name=policy]").val();
 		var desc = form.find("[name=description]").val();
 		var type = form.data("type");
 		var cls = tiddlyweb._capitalize(type);
@@ -73,10 +88,7 @@ var ns = tiddlyweb.admin = {
 				return false;
 			}
 		}
-		var resource = form.data("resource");
-		if(resource) { // XXX: special-casing
-			entity = restore(entity, resource); // XXX: temporary workaround (otherwise policy will be reset)
-		}
+		entity.policy = $.parseJSON(policy);
 		entity.put(function(resource, status, xhr) {
 			ns.refreshCollection(type + "s"); // XXX: redundant if entity not new
 		}, ns.notify);
@@ -108,16 +120,95 @@ var ns = tiddlyweb.admin = {
 	}
 };
 
-var restore = function(entity, resource) { // XXX: temporary workaround (see above)
-	for(var i = 0; i < resource.data.length; i++) {
-		var attr = resource.data[i];
-		var val = entity[attr];
-		if(val && val.length !== undefined ? val.length === 0 : !val) { // XXX: hacky and imprecise
-			entity[attr] = resource[attr];
+ns.Policy = function(policy) { // TODO: move to separate module
+	this.policy = policy || {}; // TODO: rename?
+};
+$.extend(ns.Policy.prototype, {
+	constraints: { // TODO: descriptions; distinction bag/recipe
+		read: "lorem",
+		write: "ipsum",
+		create: "dolor",
+		"delete": "sit",
+		manage: "amet",
+		accept: "consectetur"
+	},
+	btnLabel: "Save",
+	addLabel: "New",
+	addPrompt: "Enter identifier:",
+	delPrompt: "Are you sure you want to remove this item?",
+
+	editor: function() { // TODO: rename?
+		var ctx = {
+			constraints: this.constraints,
+			policy: {},
+			btnLabel: this.btnLabel,
+			addLabel: this.addLabel
+		};
+		// augment list items
+		$.each(this.policy || {}, function(constraint, items) {
+			if(constraint == "owner") {
+				ctx.policy[constraint] = items;
+			} else if(items.length == 0) {
+				ctx.policy[constraint] = ["<em>empty</em>"]; // TODO: i18n
+			} else {
+				ctx.policy[constraint] = $.map(items, function(item, i) {
+					if(["ANY", "NONE"].indexOf(item) != -1) {
+						return "<em>" + item + "</em>";
+					} else if(item.substr(0, 2) == "R:") {
+						return "<strong>" + item + "</strong>";
+					} else {
+						return item;
+					}
+				});
+			}
+		});
+		return $("#template_policyForm").template(ctx).
+			data({ self: this }).submit(this.update).
+			find(".button").click(this.addIdentifier).end().
+			find("dd li").click(this.delIdentifier).end();
+	},
+	update: function(ev) { // TODO: rename?
+		var form = $(this).closest("form");
+		var self = form.data("self");
+		form.find("dt").each(function(i, item) {
+			// XXX: relying on node text is dangerous due to i18n, markup (incl. captialization, punctuation)
+			var el = $(item);
+			var constraint = el.text();
+			if(constraint != "owner") {
+				self.policy[constraint] = [];
+				el.next().find("li").each(function(i, item) {
+					var identifier = $(item).text();
+					if(["empty", "ANY", "NONE"].indexOf(identifier) == -1) {
+						self.policy[constraint].push(identifier);
+					}
+				});
+			}
+		});
+		form.dialog("close");
+		return false;
+	},
+	addIdentifier: function(ev) {
+		var el = $(this);
+		var self = el.closest("form").data("self");
+		var identifier = prompt(self.addPrompt); // XXX: alert is pfui
+		if(identifier) {
+			$("<li />").text(identifier).appendTo(el.prev()); // XXX: lacks augmentation (cf. editor method)
+		}
+	},
+	delIdentifier: function(ev) {
+		var el = $(this);
+		var self = el.closest("form").data("self");
+		if(confirm(self.delPrompt)) { // TODO: message should contain identifier (to verify click)
+			el.fadeOut(function() {
+				var list = el.parent();
+				$(this).remove();
+				if(list.children().length == 0) {
+					$("<li><em>empty</em></li>").hide().appendTo(list).fadeIn(); // XXX: hacky (duplicates editor method's functionality)
+				}
+			});
 		}
 	}
-	return entity;
-};
+});
 
 if(window.location.protocol == "file:") {
 	var ajax = $.ajax;
@@ -135,6 +226,13 @@ var refreshAll = function(ev) {
 	ns.refreshCollection("bags");
 	return false;
 };
+
+$.extend($.ui.dialog.prototype.options, {
+	closeOnEscape: false,
+	close: function(ev, ui) {
+		$(this).closest(".ui-dialog").empty().remove(); // emptying required due to jQuery UI magic
+	}
+});
 
 $("#settings").submit(refreshAll). // TODO: i18n
 	find("[name=host]").val("http://0.0.0.0:8080"); // XXX: DEBUG

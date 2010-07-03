@@ -45,10 +45,39 @@
 			<dl>
 				<dt>Name:</dt>
 				<dd><input type="text" name="name" /></dd>
+				<dt>Policy:</dt>
+				<dd><input type="text" name="policy" /></dd>
 				<dt>Description:</dt>
 				<dd><textarea name="description"></textarea></dd>
 				<dt>Recipe:</dt>
 				<dd><textarea name="recipe"></textarea></dd>
+			</dl>
+			<input type="submit" value="<%= btnLabel %>" />
+		</form>
+	</script>
+
+	<script type="text/html" id="template_policyForm">
+		<form action="#" class="policy">
+			<dl>
+				<dt>owner</dt>
+				<dd><%= policy.owner %></dd>
+				<%
+				for(var constraint in constraints) {
+				%>
+				<dt><%= constraint %></dt>
+				<dd>
+					<p><%= constraints[constraint] %></p>
+					<ul>
+						<%
+						var items = policy[constraint] || [];
+						for(var i = 0; i < items.length; i++) {
+						%>
+						<li><%= items[i] %></li>
+						<% } %>
+					</ul>
+					<a href="javascript:;" class="button"><%= addLabel %></a>
+				</dd>
+				<% } %>
 			</dl>
 			<input type="submit" value="<%= btnLabel %>" />
 		</form>
